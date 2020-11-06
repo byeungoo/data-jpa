@@ -8,12 +8,15 @@ import javax.persistence.*;
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString(of = {"id", "username", "age"})  //가급적 연관관계는 @ToString 안하는게 나음
+@NamedQuery(  //NamedQuery 보다는 JPQL 많이씀.
+        name="Member.findByUsername",
+        query="select m from Member m where m.username = :username"  //NamedQuery의 가장 큰 장점은 애플리케이션 로딩 시점에 파싱을 해서 오류를 알려줌.
+)
 public class Member {
 
     @Id
     @GeneratedValue
     @Column(name = "member_id")
-
     private Long id;
     private String username;
     private int age;
