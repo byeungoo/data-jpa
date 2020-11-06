@@ -6,9 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
+import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
+import study.datajpa.entity.Team;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -71,5 +75,71 @@ public class MemberRepositoryTest {
         Member findMember = result.get(0);
         assertThat(findMember).isEqualTo(m1);
     }
+
+    @Test
+    public void testQuery(){
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("AAA", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        List<Member> result = memberRepository.findUser("AAA", 10);
+        Member findMember = result.get(0);
+        assertThat(findMember).isEqualTo(m1);
+    }
+
+    @Test
+    public void findUsernameList(){
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("AAA", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        List<String> usernameList = memberRepository.findUsernameList();
+        for (String s : usernameList) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    @Test
+    public void findMemberDto(){
+        Member m1 = new Member("AAA", 10);
+        memberRepository.save(m1);
+
+        Team team = new Team("teamA");
+        m1.setTeam(team);
+        memberRepository.save(m1);
+
+        List<MemberDto> usernameList = memberRepository.findMemberDto();
+        for (MemberDto memberDto : usernameList) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
+
+    @Test
+    public void findByNames(){
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("AAA", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        List<Member> memberList = memberRepository.findByNames(Arrays.asList("AAA", "BBB"));
+        for (Member member : memberList) {
+            System.out.println("member = " + member);
+        }
+    }
+
+    @Test
+    public void returnType(){
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("AAA", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        List<Member> aaa = memberRepository.findListByUsername("AAA");  //null인 경우에는 빈 컬렉션
+        Member findMember = memberRepository.findMemberByUsername("BBB");  //단건인 경우에는 없으면 결과가 null임.
+        Optional<Member> ccc = memberRepository.findOptionalByUsername("asdasdasd");  //결과가 있을수도있고 없을 수도 있으면 Optional 쓰는게 좋음
+    }
+
 
 }
