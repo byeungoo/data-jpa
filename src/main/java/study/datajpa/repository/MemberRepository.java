@@ -1,5 +1,6 @@
 package study.datajpa.repository;
 
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,9 +35,20 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Query("select m from Member m where m.username in :names")
     List<Member> findByNames(@Param("names") List<String> names);
 
-
     List<Member> findListByUsername(String name); //컬렉션
     Member findMemberByUsername(String name); //단건
     Optional<Member> findOptionalByUsername(String name); //단건 Optional
+
+    Page<Member> findByAge(int age, Pageable pageable);
+    Slice<Member> findSliceByAge(int age, Pageable pageable);
+
+    @Query(value = "select m from Member m left join m.team t",
+            countQuery = "select count(m) from Member m")          //카운트 쿼리를 따로 만들어줌. 안그러면 조인이 복잡한 경우 그 복잡한 조인으로 count 쿼리를함.
+    Page<Member> findPage2ByAge(int age, Pageable pageable);
+
+    Page<Member> findPage1ByUsername(String name, Pageable pageable); //count 쿼리 사용
+    Slice<Member> findPage2ByUsername(String name, Pageable pageable); //count 쿼리 사용 안함
+    List<Member> findPage3ByUsername(String name, Pageable pageable); //count 쿼리 사용 안함
+    List<Member> findPage4ByUsername(String name, Sort sort);
 
 }
