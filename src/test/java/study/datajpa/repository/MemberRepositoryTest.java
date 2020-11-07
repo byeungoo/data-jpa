@@ -13,6 +13,8 @@ import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 import study.datajpa.entity.Team;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +28,13 @@ public class MemberRepositoryTest {
 
     @Autowired
     MemberRepository memberRepository;
+
+    @Autowired
+    TeamRepository teamRepopository;
+
+    @PersistenceContext
+    EntityManager em;
+
 
     @Test
     public void testMember() {
@@ -228,5 +237,76 @@ public class MemberRepositoryTest {
         Page<MemberDto> memberDtoMap = page.map(member -> new MemberDto(member.getId(), member.getUsername(), null));
 
     }
+
+    @Test
+    public void bulkUpdate(){
+        //given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 19));
+        memberRepository.save(new Member("member3", 20));
+        memberRepository.save(new Member("member4", 21));
+        memberRepository.save(new Member("member5", 40));
+
+        //when
+        int resultCount = memberRepository.bulkAgePlus(20);  //벌크연산시에는 영속성 컨텍스트를 무시하고 DB에 날림.
+        em.flush();
+        em.clear();   //영속성 컨텍스트를 완전히 날려버림. 벌크 연산 후에는 영속성 컨텍스트를 날려버리는게 좋음.
+
+        List<Member> result = memberRepository.findByUsername("member5");
+        Member member5 = result.get(0);
+        System.out.println(member5.getAge());
+
+        //then
+        assertThat(resultCount).isEqualTo(3);
+    }
+
+    @Test
+    public void findMemberLazy(){
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+
+        teamRepopository.save(teamA);
+        teamRepopository.save(teamB);
+
+        Member member1 = new Member("member1", 10 , teamA);
+        Member member2 = new Member("member2", 10 , teamB);
+
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        em.flush();
+        em.clear();
+
+        //when
+        List<Member> members = memberRepository.findMemberEntityGraph();
+
+        for(Member member : members){
+            System.out.println("member = " + member.getUsername());
+            System.out.println("member.team = " + member.getTeam().getClass());
+            System.out.println("member.team = " + member.getTeam().getName());
+        }
+
+    }
+
+    @Test
+    public void queryHint(){
+        Member member1 = memberRepository.save(new Member("member1", 10));
+        em.flush();
+        em.clear();
+
+        Member findMember = memberRepository.findReadOnlyByUsername("member1");
+        findMember.setUsername("member2");  //readOnly 이기 때문에 변경감지 동작 x
+        em.flush();
+    }
+
+    @Test
+    public void lock(){
+        Member member1 = memberRepository.save(new Member("member1", 10));
+        em.flush();
+        em.clear();
+
+        List<Member> result = memberRepository.findLockByUsername("member1");
+    }
+
 
 }

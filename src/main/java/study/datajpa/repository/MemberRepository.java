@@ -1,12 +1,16 @@
 package study.datajpa.repository;
 
-import org.springframework.data.domain.*;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 
+import javax.persistence.LockModeType;
+import javax.persistence.QueryHint;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,5 +54,30 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Slice<Member> findPage2ByUsername(String name, Pageable pageable); //count 쿼리 사용 안함
     List<Member> findPage3ByUsername(String name, Pageable pageable); //count 쿼리 사용 안함
     List<Member> findPage4ByUsername(String name, Sort sort);
+
+    @Modifying(clearAutomatically = true)  //벌크성 수정, 삭제 쿼리는 이 어노테이션 사용해야함. clearAutomatically 옵션을 주면 영속성 컨텍스트 비워줌.
+    @Query("update Member m set m.age = m.age + 1 where m.age >= :age")
+    int bulkAgePlus(@Param("age") int age);
+
+    @Query("select m from Member m left join fetch m.team")
+    List<Member> findMemberFetchJoin();
+
+    @Override
+    @EntityGraph(attributePaths = {"team"})  //내부적으로 fetch join 사용
+    List<Member> findAll();
+
+    @EntityGraph(attributePaths = {"team"})
+    @Query("select m from Member m ")
+    List<Member> findMemberEntityGraph(); // jpql + EntityGraph 같이 사용
+
+    @EntityGraph(attributePaths = {"team"})
+    //@EntityGraph("Member.all")
+    List<Member> findEntityGraphByUsername(@Param("username") String username);  //메소드이름으로
+
+    @QueryHints(value = @QueryHint(name = "org.hibernate.readOnly", value = "true"))
+    Member findReadOnlyByUsername(String username);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)  //쿼리 끝에 for update 붙음.
+    List<Member> findLockByUsername(String username);
 
 }
