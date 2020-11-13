@@ -13,7 +13,7 @@ import javax.persistence.*;
         query="select m from Member m where m.username = :username"  //NamedQuery의 가장 큰 장점은 애플리케이션 로딩 시점에 파싱을 해서 오류를 알려줌.
 )
 @NamedEntityGraph(name = "Member.all", attributeNodes = @NamedAttributeNode("team"))
-public class Member {
+public class Member extends BaseEntity{
 
     @Id
     @GeneratedValue
