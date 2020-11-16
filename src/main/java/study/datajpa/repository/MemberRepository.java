@@ -80,4 +80,9 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberRep
     @Lock(LockModeType.PESSIMISTIC_WRITE)  //쿼리 끝에 for update 붙음.
     List<Member> findLockByUsername(String username);
 
+    //List<UsernameOnly> findProjectionsByUsername(@Param("username") String username);
+
+    //List<UsernameOnlyDto> findProjectionsByUsername(@Param("username") String username);
+
+    <T> List<T> findProjectionsByUsername(@Param("username") String username, Class<T> type);
 }
