@@ -12,6 +12,7 @@ import javax.persistence.PersistenceContext;
 import java.util.List;
 
 @SpringBootTest
+@Transactional
 public class MemberTest {
 
     @PersistenceContext
